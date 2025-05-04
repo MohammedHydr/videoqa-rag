@@ -19,7 +19,7 @@ import sys, pathlib
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 from scripts.common import RAW
 
-URL = "https://piped.video/watch?v=dARr3lGKwk8"
+URL = "https://youtu.be/dARr3lGKwk8"
 META = RAW / "download_meta.json"
 MP4 = RAW / "video.mp4"
 WAV16 = RAW / "audio.wav"
@@ -45,6 +45,7 @@ def download():
             "merge_output_format": "mp4",
             "noprogress": False,  # show tqdm
             "quiet": False,
+            "cookiefile": str(pathlib.Path(__file__).resolve().parents[1] / "cookies.txt"),
         }
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([URL])
