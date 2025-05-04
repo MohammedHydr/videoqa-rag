@@ -12,16 +12,14 @@ Features
 
 import hashlib
 import json
-import pathlib
 import subprocess
-import sys
 
 from yt_dlp import YoutubeDL
-
+import sys, pathlib
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 from scripts.common import RAW
 
-URL = "https://youtube/dARr3lGKwk8"
+URL = "https://youtu.be/dARr3lGKwk8"
 META = RAW / "download_meta.json"
 MP4 = RAW / "video.mp4"
 WAV16 = RAW / "audio.wav"
@@ -48,8 +46,8 @@ def download():
             "noprogress": False,  # show tqdm
             "quiet": False,
             # ── add these two lines ───────────────────────
-            "cookiefile": str(pathlib.Path(__file__).resolve().parent / "cookies.txt"),
-            # or: "cookiesfrombrowser": ("firefox",)  # auto‑grab local Firefox cookies
+            # "cookiefile": str(pathlib.Path(__file__).resolve().parent / "cookies.txt"),
+            "cookiesfrombrowser": ("firefox",)  # auto‑grab local Firefox cookies
         }
 
         with YoutubeDL(ydl_opts) as ydl:
