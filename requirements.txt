@@ -1,0 +1,27 @@
+# ── core app ──────────────────────────────────────────
+streamlit==1.35.0           # needs protobuf <5
+yt-dlp           # latest stable tag on PyPI
+faster-whisper==1.0.1
+sentence-transformers==2.6.1
+open_clip_torch==2.24.0
+faiss-cpu==1.8.0
+
+# ── retrieval & NLP ──────────────────────────────────
+rank-bm25==0.2.2
+rapidfuzz==3.9.2
+scikit-learn==1.5.0
+numpy==1.26.4
+pandas==2.2.2
+
+# ── vision ───────────────────────────────────────────
+opencv-python==4.9.0.80
+
+# ── gRPC / protobuf pin (streamlit compatible) ───────
+protobuf>=3.20.0,<5
+grpcio==1.59.0
+grpcio-status==1.59.0
+
+# ── torch note ───────────────────────────────────────
+# Install the wheel that matches your CUDA:
+#   pip install torch==2.2.2+cu118 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+joblib
