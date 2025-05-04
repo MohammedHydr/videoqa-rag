@@ -2,21 +2,19 @@
 #
 #
 #SBATCH --job-name=video_dl
-#SBATCH --output=logs/video_dl_%j.out
-#SBATCH --partition=standard
+#SBATCH --partition=normal          # ← from sinfo
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=2
-#SBATCH --mem=4G
+#SBATCH --cpus-per-task=2           # yt‑dlp & ffmpeg parallel
+#SBATCH --mem=16G
 #SBATCH --time=00:15:00
+#SBATCH --output=logs/video_dl_%j.out
 
-# ── module environment — use the names shown in the Octopus doc ──
 module purge
 module load Python/3.10.4-GCCcore-11.3.0
 module load FFmpeg/5.1.2-GCC-11.3.0
 
-# ── activate project venv ─────────────────────────────────────────
-source ~/videoqa/.venv/bin/activate          # adapt to your path
+# activate your virtual env
+source ~/videoqa/.venv/bin/activate   # adjust path if needed
 
-# ── run the downloader ────────────────────────────────────────────
 python scripts/download.py
