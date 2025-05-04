@@ -46,8 +46,8 @@ def download():
             "noprogress": False,  # show tqdm
             "quiet": False,
             # ── add these two lines ───────────────────────
-            # "cookiefile": str(pathlib.Path(__file__).resolve().parent / "cookies.txt"),
-            "cookiesfrombrowser": ("firefox",)  # auto‑grab local Firefox cookies
+            "cookiefile": str(pathlib.Path(__file__).resolve().parent / "cookies.txt"),
+            # or: "cookiesfrombrowser": ("firefox",)  # auto‑grab local Firefox cookies
         }
 
         with YoutubeDL(ydl_opts) as ydl:
