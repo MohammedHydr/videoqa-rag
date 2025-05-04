@@ -10,15 +10,18 @@ Features
 ✓ works locally or on Octopus Slurm (submit with  sbatch hpc_download.sh )
 """
 
-import hashlib, json, subprocess, sys
-from pathlib import Path
+import hashlib
+import json
+import subprocess
 
 from yt_dlp import YoutubeDL
+import sys, pathlib
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 from scripts.common import RAW
 
-URL   = "https://youtu.be/dARr3lGKwk8"
-META  = RAW / "download_meta.json"
-MP4   = RAW / "video.mp4"
+URL = "https://youtu.be/dARr3lGKwk8"
+META = RAW / "download_meta.json"
+MP4 = RAW / "video.mp4"
 WAV16 = RAW / "audio.wav"
 
 
@@ -38,9 +41,9 @@ def download():
         print("⬇️  downloading video via yt‑dlp …")
         ydl_opts = {
             "outtmpl": str(RAW / "video.%(ext)s"),
-            "format":  "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
+            "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
             "merge_output_format": "mp4",
-            "noprogress": False,   # show tqdm
+            "noprogress": False,  # show tqdm
             "quiet": False,
         }
         with YoutubeDL(ydl_opts) as ydl:
@@ -59,8 +62,8 @@ def download():
             [
                 "ffmpeg", "-y",
                 "-i", str(MP4),
-                "-ac", "1",           # mono
-                "-ar", "16000",       # 16 kHz
+                "-ac", "1",  # mono
+                "-ar", "16000",  # 16 kHz
                 str(WAV16),
             ],
             check=True,
