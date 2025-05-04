@@ -15,6 +15,4 @@ module load Python/3.10.4-GCCcore-11.3.0
 module load FFmpeg/5.1.2-GCC-11.3.0
 
 # activate your virtual env
-source ~/videoqa/.venv/bin/activate   # adjust path if needed
-
 python scripts/download.py
