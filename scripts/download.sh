@@ -16,7 +16,7 @@ module load Python/3.10.4-GCCcore-11.3.0
 module load FFmpeg/5.1.2-GCC-11.3.0
 
 # ── activate project venv ─────────────────────────────────────────
-source ~/projects/videoqa/.venv/bin/activate          # adapt to your path
+source ~/videoqa/.venv/bin/activate          # adapt to your path
 
 # ── run the downloader ────────────────────────────────────────────
 python scripts/download.py
