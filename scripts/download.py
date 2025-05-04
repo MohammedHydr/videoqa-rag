@@ -12,14 +12,16 @@ Features
 
 import hashlib
 import json
+import pathlib
 import subprocess
+import sys
 
 from yt_dlp import YoutubeDL
-import sys, pathlib
+
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 from scripts.common import RAW
 
-URL = "https://youtu.be/dARr3lGKwk8"
+URL = "https://youtube/dARr3lGKwk8"
 META = RAW / "download_meta.json"
 MP4 = RAW / "video.mp4"
 WAV16 = RAW / "audio.wav"
@@ -45,8 +47,11 @@ def download():
             "merge_output_format": "mp4",
             "noprogress": False,  # show tqdm
             "quiet": False,
-            "cookiefile": str(pathlib.Path(__file__).resolve().parents[1] / "cookies.txt"),
+            # ── add these two lines ───────────────────────
+            "cookiefile": str(pathlib.Path(__file__).resolve().parent / "cookies.txt"),
+            # or: "cookiesfrombrowser": ("firefox",)  # auto‑grab local Firefox cookies
         }
+
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([URL])
 
@@ -58,13 +63,13 @@ def download():
 
     # ── 3. extract mono 16‑kHz WAV for Whisper ────────────────────
     if not WAV16.exists():
-        print("🎙  extracting audio to 16 kHz mono …")
+        print("🎙  extracting audio to 16kHz mono …")
         subprocess.run(
             [
                 "ffmpeg", "-y",
                 "-i", str(MP4),
                 "-ac", "1",  # mono
-                "-ar", "16000",  # 16 kHz
+                "-ar", "16000",  # 16kHz
                 str(WAV16),
             ],
             check=True,
