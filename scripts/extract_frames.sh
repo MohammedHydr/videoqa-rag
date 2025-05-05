@@ -7,10 +7,13 @@
 #SBATCH --cpus-per-task=8
 
 
-source ~/.bashrc
-source ~/.venv/bin/activate
-
+# Load necessary modules
 module purge
-module load FFmpeg/5.1.2-GCC-11.3.0
+module load python/3.10
+module load ffmpeg/4.2.2
 
+# Activate virtual environment
+source ~/videoqa-rag/.venv/bin/activate
+
+# Run the frame extraction script
 python scripts/extract_frames.py
