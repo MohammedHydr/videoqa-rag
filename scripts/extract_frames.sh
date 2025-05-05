@@ -6,5 +6,11 @@
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=8
 
+
+source ~/.bashrc
 source ~/.venv/bin/activate
+
+module purge
+module load FFmpeg/5.1.2-GCC-11.3.0
+
 python scripts/extract_frames.py
