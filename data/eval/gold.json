@@ -1,0 +1,77 @@
+[
+  {
+    "question": "Who is the speaker?",
+    "answer": "Professor Amir Mawad from American University of Beirut.",
+    "timestamp": 1.39
+  },
+  {
+    "question": "What is the main topic of the talk?",
+    "answer": "The girth and parameters complexity of token sliding and token jumping on graphs, including combinatorial reconfiguration problems.",
+    "timestamp": 1.39
+  },
+  {
+    "question": "What example game is used to introduce combinatorial reconfiguration?",
+    "answer": "The 15 puzzle game.",
+    "timestamp": 193.28
+  },
+  {
+    "question": "What are the two main rules discussed for reconfiguration in the context of independent sets?",
+    "answer": "Token jumping and token sliding.",
+    "timestamp": 780.38
+  },
+  {
+    "question": "Which complexity class do many reconfiguration problems belong to?",
+    "answer": "PSPACE-complete.",
+    "timestamp": 1087.46
+  },
+  {
+    "question": "What is the complexity of the 3-coloring reconfiguration problem?",
+    "answer": "Polynomial time solvable.",
+    "timestamp": 1190.46
+  },
+  {
+    "question": "Are token sliding and jumping easier on graphs with bounded treewidth?",
+    "answer": "No, they remain PSPACE-complete even on graphs of constant treewidth or pathwidth.",
+    "timestamp": 1243.29
+  },
+  {
+    "question": "On bipartite graphs, what is the known complexity difference between token jumping and token sliding?",
+    "answer": "Token jumping is NP-complete, whereas token sliding is PSPACE-complete.",
+    "timestamp": 1292.18
+  },
+  {
+    "question": "What graph property makes token jumping FPT when combined with C3-freeness?",
+    "answer": "C4-freeness.",
+    "timestamp": 1601.12
+  },
+  {
+    "question": "What technique is mentioned for proving FPT results for token jumping?",
+    "answer": "The buffer technique.",
+    "timestamp": 2518.3
+  },
+  {
+    "question": "Does the speaker discuss applications of token sliding in robotics specifically?",
+    "answer": null,
+    "timestamp": null
+  },
+  {
+    "question": "What is the exact size of the kernel achieved for token jumping on C3/C4-free graphs?",
+    "answer": null,
+    "timestamp": null
+  },
+  {
+    "question": "Did the speaker publish the results on bipartite C4-free graphs before this talk?",
+    "answer": null,
+    "timestamp": null
+  },
+  {
+    "question": "What specific algorithm is used to solve the maximum independent set on bipartite graphs in polynomial time?",
+    "answer": null,
+    "timestamp": null
+  },
+  {
+    "question": "Is there a known polynomial-time algorithm for token sliding on even-hole-free graphs?",
+    "answer": null,
+    "timestamp": null
+  }
+]

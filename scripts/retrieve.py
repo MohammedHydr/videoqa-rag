@@ -1,115 +1,65 @@
-"""
-Multimodal Retrieval System:
-- Text  : BGE-Large (FAISS HNSW)
-- Image : CLIP ViT-B/32 (FAISS HNSW)
-- Lexical: BM25 (exact match)
-→ Late fusion with configurable weights.
-"""
-import pathlib
-import sys
-
+import json
 import numpy as np
-import faiss
-import pickle
-import joblib
 import torch
-import open_clip
-from open_clip import tokenize
-from rank_bm25 import BM25Okapi
+from pathlib import Path
+from sentence_transformers import SentenceTransformer, util
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sentence_transformers import SentenceTransformer
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
+from rank_bm25 import BM25Okapi
 
-from scripts.common import PROC, load_transcript, np_load
+from scripts.common import PROC, load_transcript, extract_clip
 
-# ─── Load Once ─────────────────────────────────────────────────────
+# Load data
+transcript = load_transcript()
+text_chunks = [chunk["text"] for chunk in transcript]
+text_starts = [chunk["start"] for chunk in transcript]
 
-chunks = load_transcript()
-text_hnsw = faiss.read_index(str(PROC / "text_hnsw.index"))
-img_hnsw = faiss.read_index(str(PROC / "img_hnsw.index"))
-bm25 = pickle.load(open(PROC / "bm25.pkl", "rb"))
-tfidf: TfidfVectorizer = joblib.load(PROC / "tfidf.joblib")
+# Load embeddings
+text_embeds = np.load(PROC / "text.npy")
+img_embeds = np.load(PROC / "img.npy")
 
-text_vecs = np_load(PROC / "text.npy")
-frame_files = sorted((PROC / "frames").glob("*.jpg"), key=lambda p: float(p.stem.split('_')[1]))
+# Load OCR results (from preprocessed frames or compute live if needed)
+ocr_data = json.loads((PROC / "ocr.json").read_text()) if (PROC / "ocr.json").exists() else []
+ocr_texts = [item["text"] for item in ocr_data]
+ocr_timestamps = [item["start"] for item in ocr_data]
 
-# Models
-bge_model = SentenceTransformer("BAAI/bge-large-en-v1.5", device="cuda")
-clip_model, _, _ = open_clip.create_model_and_transforms("ViT-B-32", pretrained="openai")
-clip_model = clip_model.eval().to("cuda")
+# Init models
+text_encoder = SentenceTransformer("intfloat/e5-large-v2", device="cuda" if torch.cuda.is_available() else "cpu")
 
+# TF-IDF
+tfidf = TfidfVectorizer().fit(text_chunks + ocr_texts)
+tfidf_matrix = tfidf.transform(text_chunks + ocr_texts)
 
-# ─── Embedding Encoders ────────────────────────────────────────────
-
-def encode_text(text: str) -> np.ndarray:
-    """BGE encoder"""
-    emb = bge_model.encode([text], normalize_embeddings=True)
-    return emb.astype("float32")
-
-
-def encode_image_text(text: str) -> np.ndarray:
-    """CLIP text encoder for visual grounding"""
-    with torch.no_grad():
-        tokens = tokenize([text]).to("cuda")
-        vec = clip_model.encode_text(tokens)
-        vec = vec / vec.norm(dim=-1, keepdim=True)
-        return vec.cpu().numpy().astype("float32")
+# BM25
+bm25 = BM25Okapi([doc.split() for doc in text_chunks + ocr_texts])
 
 
-# ─── Main Retrieval ────────────────────────────────────────────────
+def retrieve(query: str, mode="Fused (default)"):
+    query_embed = text_encoder.encode("query: " + query, normalize_embeddings=True)
 
-def retrieve(query: str,
-             mode: str = "Fused (default)",
-             k_text=8, k_img=8, k_lex=8,
-             w_text=0.6, w_img=0.2, w_lex=0.2,
-             thresh=0.12) -> dict | None:
+    sim_text = util.cos_sim(torch.tensor([query_embed]), torch.tensor(text_embeds))[0].cpu().numpy()
+    sim_img = util.cos_sim(torch.tensor([query_embed]), torch.tensor(img_embeds))[0].cpu().numpy()
+    sim_tfidf = (tfidf_matrix @ tfidf.transform([query]).T).toarray().flatten()
+    sim_bm25 = np.array(bm25.get_scores(query.split()))
 
-    results = {}
-    q_text = encode_text(query)
+    # Fusion depending on selected mode
+    if mode == "Semantic Only":
+        scores = sim_text
+    elif mode == "TF‑IDF Only":
+        scores = sim_tfidf
+    elif mode == "BM25 Only":
+        scores = sim_bm25
+    else:
+        scores = 0.5 * sim_text + 0.3 * sim_img[:len(sim_text)] + 0.2 * sim_bm25[:len(sim_text)]
 
-    # ── 1. Semantic Text Retrieval ─────────────────────
-    if mode in ["Fused (default)", "Semantic only"]:
-        D_txt, I_txt = text_hnsw.search(q_text, k_text)
-        sim_txt = 1 - 0.5 * D_txt[0]  # L2 → cosine
-        for idx, score in zip(I_txt[0], sim_txt):
-            results.setdefault(idx, {})["score_text"] = float(score)
+    idx = np.argmax(scores)
+    best_score = scores[idx]
 
-    # ── 2. Image Semantic Retrieval ─────────────────────
-    if mode == "Fused (default)":
-        q_img = encode_image_text(query)
-        D_img, I_img = img_hnsw.search(q_img, k_img)
-        sim_img = 1 - 0.5 * D_img[0]
-        for idx, score in zip(I_img[0], sim_img):
-            results.setdefault(idx, {})["score_img"] = float(score)
-
-    # ── 3. Lexical (BM25) Retrieval ─────────────────────
-    if mode in ["Fused (default)", "BM25 only"]:
-        tokens = query.lower().split()
-        bm_scores = bm25.get_scores(tokens)
-        top_lex = np.argsort(bm_scores)[::-1][:k_lex]
-        max_bm = max(bm_scores[top_lex[0]], 1e-6)
-        for idx in top_lex:
-            results.setdefault(idx, {})["score_lex"] = float(bm_scores[idx]) / max_bm
-
-    # ── 4. Fusion Scoring ───────────────────────────────
-    best_id, best_score = None, 0.0
-    for idx, scores in results.items():
-        final_score = (
-            w_text * scores.get("score_text", 0.0) +
-            w_img * scores.get("score_img", 0.0) +
-            w_lex * scores.get("score_lex", 0.0)
-        )
-        if final_score > best_score:
-            best_id, best_score = idx, final_score
-
-    if best_score < thresh:
+    # Rejection threshold
+    if best_score < 0.25:
         return None
 
-    chunk = chunks[best_id]
-    return {
-        "id": best_id,
-        "start": chunk["start"],
-        "end": chunk["end"],
-        "text": chunk["text"],
-        "score": best_score
-    }
+    start = text_starts[idx]
+    text = text_chunks[idx]
+    path = extract_clip(start)
+
+    return {"start": start, "text": text, "clip": path}
