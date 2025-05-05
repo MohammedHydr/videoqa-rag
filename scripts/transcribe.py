@@ -1,5 +1,7 @@
 # scripts/transcribe.py
 from faster_whisper import WhisperModel
+import sys, pathlib
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 from scripts.common import RAW, PROC, save_json
 
 
